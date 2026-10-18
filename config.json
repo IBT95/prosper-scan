@@ -1,0 +1,12 @@
+{
+  "eigenKantoor": ["Frère Vastgoed"],
+  "zone": [
+    {"gemeente": "As", "postcode": "3665"},
+    {"gemeente": "Niel-bij-As", "postcode": "3668"},
+    {"gemeente": "Opglabbeek", "postcode": "3660"},
+    {"gemeente": "Meeuwen-Gruitrode", "postcode": "3670", "url": "https://www.zimmo.be/nl/oudsbergen/te-koop"},
+    {"gemeente": "Houthalen-Helchteren", "postcode": "3530"},
+    {"gemeente": "Zutendaal", "postcode": "3690"},
+    {"gemeente": "Genk", "postcode": "3600"}
+  ]
+}
