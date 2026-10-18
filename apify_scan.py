@@ -22,7 +22,8 @@ ROOT = Path(__file__).parent
 CONFIG = json.loads((ROOT / "config.json").read_text(encoding="utf-8"))
 ACTOR = "dz_omar~zimmo-scraper"
 TOKEN = os.environ.get("APIFY_TOKEN", "").strip()
-MAX_RESULTS = int(os.environ.get("MAX_RESULTS") or 600)
+MODUS = (os.environ.get("MODUS") or "nieuw").strip().lower()  # "nieuw" of "volledig"
+MAX_RESULTS = int(os.environ.get("MAX_RESULTS") or (900 if MODUS == "volledig" else 40))
 API = "https://api.apify.com/v2"
 TODAY = dt.date.today()
 
@@ -127,51 +128,78 @@ def online_sinds(foto, item):
     return ""
 
 
+def g(obj, *path, default=None):
+    for k in path:
+        if not isinstance(obj, dict):
+            return default
+        obj = obj.get(k)
+    return default if obj is None else obj
+
+
+def first_image(it):
+    imgs = g(it, "files", "images", default=[]) or []
+    if not imgs:
+        return ""
+    th = imgs[0].get("thumbnails") or {}
+    return th.get("z-result") or th.get("z-detail") or next(iter(th.values()), "")
+
+
 def normalise(items):
+    """Zet de Apify-output (Zimmo-API-structuur) om naar het Prosper-formaat."""
     zone = {z["postcode"]: z["gemeente"] for z in CONFIG["zone"]}
     eigen = [e.lower() for e in CONFIG.get("eigenKantoor", [])]
     rows, seen = [], set()
     for it in items:
-        url = next((v for _, v in walk(it) if isinstance(v, str) and CODE_RE.search(v)), "")
-        m = CODE_RE.search(url)
-        if not m or m.group(2) in seen:
+        if it.get("supported") is False:
             continue
-        typ, code = m.group(1), m.group(2)
+        url = g(it, "enriched", "detailPageUrl", "nl", default="")
+        code = g(it, "extra", "zimmoCode") or g(it, "extra", "code")
+        m = CODE_RE.search(url)
+        if not code and m:
+            code = m.group(2)
+        if not code or code in seen:
+            continue
         seen.add(code)
-        foto = next((v for _, v in walk(it) if isinstance(v, str) and "/images/" in v
-                     and v.startswith("http")), "")
-        pc = str(pick(it, "postalCode", "postcode", "zip", "zipCode") or "")
-        if not pc:
-            pm = re.search(r"-(\d{4})/te-koop", url)
-            pc = pm.group(1) if pm else ""
-        straat = pick(it, "street", "streetName", "straat") or ""
-        nr = pick(it, "houseNumber", "number", "huisnummer") or ""
-        adres = pick(it, "address", "fullAddress", "adres")
-        if not isinstance(adres, str):
-            adres = f"{straat} {nr}".strip()
-        aanbieder = find_obj(it, "agencyName", "agency", "brokerName", "broker", "agentName",
-                         "realEstateAgency", "officeName", "companyName") or ""
-        if isinstance(aanbieder, dict):
-            aanbieder = aanbieder.get("name") or aanbieder.get("title") or ""
-        aanbieder = str(aanbieder)
-        tekst = json.dumps(it, ensure_ascii=False).lower()
-        status = str(pick(it, "status", "saleStatus", "label", "labels") or "").lower()
+        typ = m.group(1) if m else (g(it, "estate", "type", default="") or "").lower()
+        loc = g(it, "estate", "location", default={}) or {}
+        pc = str(loc.get("postalCode") or g(it, "sorting", "postalCode") or "")
+        dealer = it.get("dealer") or {}
+        cat = dealer.get("category", "")
+        sold_by = g(it, "estate", "soldBy", default="")
+        particulier = cat == "private" or sold_by == "PRIVATE_SALE"
+        aanbieder = "" if particulier else (dealer.get("name") or ("notaris" if cat == "notary" else ""))
+        stickers = [s.get("type", "") for s in (it.get("stickers") or []) if isinstance(s, dict)]
+        status = g(it, "estate", "status", default="")
+        foto = first_image(it)
+        pub = g(it, "options", "publication", "start", default="") or it.get("createdAt", "")
+        online = pub[:10] if re.match(r"\d{4}-\d{2}-\d{2}", pub or "") else online_sinds(foto, {})
+        historiek = [
+            {"d": (h.get("date") or "")[:10], "voor": g(h, "diff", "before"), "na": g(h, "diff", "after")}
+            for h in (it.get("priceHistory") or []) if isinstance(h, dict)
+        ]
         rows.append({
             "code": code,
             "url": url,
             "type": typ,
-            "adres": adres,
+            "adres": " ".join(x for x in [loc.get("street", ""), loc.get("streetNumber", "")] if x),
             "postcode": pc,
-            "gemeente": zone.get(pc, pick(it, "city", "municipality", "gemeente") or ""),
-            "prijs": to_int(pick(it, "price", "askingPrice", "prijs", "vraagprijs")),
+            "gemeente": zone.get(pc, g(it, "enriched", "placeName", "nl", default="")),
+            "prijs": to_int(g(it, "estate", "price", "value")),
             "aanbieder": aanbieder,
-            "particulier": aanbieder == "" or "particulier" in tekst,
+            "aanbiederType": cat,
+            "particulier": particulier,
+            "telefoon": (dealer.get("mobilePhoneNumber") or dealer.get("phoneNumber") or "") if particulier else "",
             "foto": foto,
-            "onlineSinds": online_sinds(foto, it),
+            "onlineSinds": online,
+            "stickers": stickers,
+            "prijsHistoriek": historiek,
             "overslaan": (
-                "project" in typ
-                or any(w in status for w in ("optie", "option", "verkocht", "sold"))
-                or any(e in aanbieder.lower() for e in eigen)
+                "project" in it
+                or "project" in typ
+                or bool(g(it, "estate", "newConstruction"))
+                or any(s in ("IN_OPTION", "SOLD", "UNDER_OPTION") for s in stickers)
+                or (status not in ("", "FOR_SALE"))
+                or any(e in (dealer.get("name") or "").lower() for e in eigen)
             ),
             "inZone": pc in zone,
         })
@@ -190,6 +218,8 @@ def main():
     data = {
         "gescand": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
         "bron": "apify:" + ACTOR,
+        "modus": MODUS,  # "nieuw": enkel de recentste zoekertjes; "volledig": hele zone
+        "maxResults": MAX_RESULTS,
         "apifyStatus": status,
         "ruweItems": len(items),
         "perGemeente": per,
@@ -198,7 +228,10 @@ def main():
     }
     txt = json.dumps(data, ensure_ascii=False, indent=1)
     (ROOT / "data" / "latest.json").write_text(txt, encoding="utf-8")
-    (ROOT / "data" / f"zimmo-{TODAY.isoformat()}.json").write_text(txt, encoding="utf-8")
+    (ROOT / "data" / f"zimmo-{TODAY.isoformat()}-{MODUS}.json").write_text(txt, encoding="utf-8")
+    if MODUS == "volledig":
+        (ROOT / "data" / "volledig.json").write_text(txt, encoding="utf-8")
+    print(f"Modus: {MODUS}, max. {MAX_RESULTS}")
     print(f"{len(items)} ruwe items, {len(rows)} in de zone: {per}")
 
 
