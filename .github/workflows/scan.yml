@@ -2,12 +2,19 @@ name: Prosper Zimmo-scan
 
 on:
   schedule:
-    - cron: "15 4 * * *"   # elke dag 04:15 UTC (06:15 zomertijd / 05:15 wintertijd)
+    - cron: "15 4 * * 2-5"   # di-vr 04:15 UTC: 40 recentste zoekertjes
+    - cron: "15 4 * * 1"     # maandag: 100 recentste (vangt ook het weekend op)
+    - cron: "15 4 1 * *"     # de 1e van de maand: volledige lijst
   workflow_dispatch:
     inputs:
+      modus:
+        description: "nieuw (recentste zoekertjes) of volledig (hele zone)"
+        type: choice
+        options: [nieuw, volledig]
+        default: nieuw
       max_results:
-        description: "Max. aantal zoekertjes (kosten begrenzen)"
-        default: "600"
+        description: "Max. aantal zoekertjes (leeg = 40 bij nieuw, 900 bij volledig)"
+        default: ""
 
 permissions:
   contents: write
@@ -25,7 +32,8 @@ jobs:
       - name: Scan via Apify
         env:
           APIFY_TOKEN: ${{ secrets.APIFY_TOKEN }}
-          MAX_RESULTS: ${{ inputs.max_results }}
+          MODUS: ${{ github.event.schedule == '15 4 1 * *' && 'volledig' || inputs.modus || 'nieuw' }}
+          MAX_RESULTS: ${{ github.event.schedule == '15 4 * * 1' && '100' || inputs.max_results }}
         run: python apify_scan.py
       - name: Resultaat opslaan
         if: always()
