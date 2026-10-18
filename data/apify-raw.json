@@ -1,0 +1,51 @@
+[
+ {
+  "url": "https://www.zimmo.be/nl/as-3665/te-koop/",
+  "supported": false,
+  "errorCode": "INVALID_URL",
+  "message": "Not a supported zimmo Belgium search URL. Expected: https://www.zimmo.be/[lang]/zoeken/?search=<base64>",
+  "scrapedAt": "2026-10-18T19:14:36.779Z"
+ },
+ {
+  "url": "https://www.zimmo.be/nl/niel-bij-as-3668/te-koop/",
+  "supported": false,
+  "errorCode": "INVALID_URL",
+  "message": "Not a supported zimmo Belgium search URL. Expected: https://www.zimmo.be/[lang]/zoeken/?search=<base64>",
+  "scrapedAt": "2026-10-18T19:14:36.882Z"
+ },
+ {
+  "url": "https://www.zimmo.be/nl/opglabbeek-3660/te-koop/",
+  "supported": false,
+  "errorCode": "INVALID_URL",
+  "message": "Not a supported zimmo Belgium search URL. Expected: https://www.zimmo.be/[lang]/zoeken/?search=<base64>",
+  "scrapedAt": "2026-10-18T19:14:36.932Z"
+ },
+ {
+  "url": "https://www.zimmo.be/nl/oudsbergen/te-koop",
+  "supported": false,
+  "errorCode": "INVALID_URL",
+  "message": "Not a supported zimmo Belgium search URL. Expected: https://www.zimmo.be/[lang]/zoeken/?search=<base64>",
+  "scrapedAt": "2026-10-18T19:14:36.971Z"
+ },
+ {
+  "url": "https://www.zimmo.be/nl/houthalen-helchteren-3530/te-koop/",
+  "supported": false,
+  "errorCode": "INVALID_URL",
+  "message": "Not a supported zimmo Belgium search URL. Expected: https://www.zimmo.be/[lang]/zoeken/?search=<base64>",
+  "scrapedAt": "2026-10-18T19:14:37.007Z"
+ },
+ {
+  "url": "https://www.zimmo.be/nl/zutendaal-3690/te-koop/",
+  "supported": false,
+  "errorCode": "INVALID_URL",
+  "message": "Not a supported zimmo Belgium search URL. Expected: https://www.zimmo.be/[lang]/zoeken/?search=<base64>",
+  "scrapedAt": "2026-10-18T19:14:37.093Z"
+ },
+ {
+  "url": "https://www.zimmo.be/nl/genk-3600/te-koop/",
+  "supported": false,
+  "errorCode": "INVALID_URL",
+  "message": "Not a supported zimmo Belgium search URL. Expected: https://www.zimmo.be/[lang]/zoeken/?search=<base64>",
+  "scrapedAt": "2026-10-18T19:14:37.131Z"
+ }
+]
