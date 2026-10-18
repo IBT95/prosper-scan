@@ -39,7 +39,8 @@ def run_actor():
     if not TOKEN:
         sys.exit("APIFY_TOKEN ontbreekt (zet het als GitHub-secret).")
     body = {
-        "startUrls": [{"url": zone_url(z)} for z in CONFIG["zone"]],
+        "startUrls": [{"url": u} for u in CONFIG.get("zoekUrls", [])]
+                     or [{"url": zone_url(z)} for z in CONFIG["zone"]],
         "maxResults": MAX_RESULTS,
         "proxyConfiguration": {"useApifyProxy": True, "apifyProxyGroups": []},
     }
