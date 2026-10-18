@@ -1,0 +1,22 @@
+{
+ "gescand": "2026-10-18T18:59:09+00:00",
+ "perGemeente": {
+  "As": 0,
+  "Niel-bij-As": 0,
+  "Opglabbeek": 0,
+  "Meeuwen-Gruitrode": 0,
+  "Houthalen-Helchteren": 0,
+  "Zutendaal": 0,
+  "Genk": 0
+ },
+ "fouten": [
+  "https://www.zimmo.be/nl/as-3665/te-koop: HTTP 403",
+  "https://www.zimmo.be/nl/niel-bij-as-3668/te-koop: HTTP 403",
+  "https://www.zimmo.be/nl/opglabbeek-3660/te-koop: HTTP 403",
+  "https://www.zimmo.be/nl/oudsbergen/te-koop: HTTP 403",
+  "https://www.zimmo.be/nl/houthalen-helchteren-3530/te-koop: HTTP 403",
+  "https://www.zimmo.be/nl/zutendaal-3690/te-koop: HTTP 403",
+  "https://www.zimmo.be/nl/genk-3600/te-koop: HTTP 403"
+ ],
+ "zoekertjes": []
+}
