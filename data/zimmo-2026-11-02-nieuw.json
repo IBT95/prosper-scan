@@ -1,0 +1,11 @@
+{
+ "gescand": "2026-11-02T05:04:22+00:00",
+ "bron": "apify:dz_omar~zimmo-scraper",
+ "modus": "nieuw",
+ "maxResults": 100,
+ "apifyStatus": "SUCCEEDED",
+ "ruweItems": 0,
+ "perGemeente": {},
+ "fouten": [],
+ "zoekertjes": []
+}
